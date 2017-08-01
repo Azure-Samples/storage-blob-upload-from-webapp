@@ -97,7 +97,6 @@ namespace ImageResizeWebApp.Controllers
            
         }
 
-
         [HttpPost("[action]")]
         public async Task<IActionResult> Upload(ICollection<IFormFile> files)
         {
