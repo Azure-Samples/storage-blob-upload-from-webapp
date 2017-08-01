@@ -106,19 +106,26 @@ namespace ImageResizeWebApp.Controllers
                 bool isQueued;
 
                 foreach (var formFile in files)
-                {               
-                    if (formFile.Length > 0 && IsImage(formFile))
+                {
+                    if (IsImage(formFile))
                     {
-                        using (Stream stream = formFile.OpenReadStream())
+                        if (formFile.Length > 0)
                         {
-                           isUploaded =  await UploadFileToStorage(stream, formFile.FileName);
-                        }
+                            using (Stream stream = formFile.OpenReadStream())
+                            {
+                                isUploaded = await UploadFileToStorage(stream, formFile.FileName);
+                            }
 
-                        if (isUploaded)
-                        {
-                            isQueued = await CreateQueueItem(imageInfo);
+                            if (isUploaded)
+                            {
+                                isQueued = await CreateQueueItem(imageInfo);
+                            }
                         }
                     }
+                    else
+                    {
+                        return BadRequest("sorry, you have to upload an image.");
+                    }                   
                 }           
 
                 return new OkResult();
