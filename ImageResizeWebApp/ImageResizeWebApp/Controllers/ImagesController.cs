@@ -11,6 +11,8 @@ using Microsoft.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Auth;
+using System.Net.Http;
+
 
 namespace ImageResizeWebApp.Controllers
 {
@@ -24,47 +26,72 @@ namespace ImageResizeWebApp.Controllers
             _storageConfig = config.Value;
         }
 
-        [HttpGet("[action]")]
-        public async Task<string> Storage()
+        [HttpGet("[action]/{containerName?}")]
+        public async Task<IActionResult> Storage(string containerName)
         {
+
             try
             {
                 if (_storageConfig != null)
                 {
                     StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-                    CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, false);
+                    CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials,true);
                     if (storageAccount != null)
-                    {
-                        //Create the blob client object.
+                    {                  
                         CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                        CloudBlobContainer container;
 
-                        //Get a reference to a container to use for the sample code, and create it if it does not exist.
-                        CloudBlobContainer container = blobClient.GetContainerReference(Guid.NewGuid().ToString().ToLower());
-                        await container.CreateIfNotExistsAsync();
-                        SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy();
-                        sasConstraints.SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(24);
-                        sasConstraints.Permissions = SharedAccessBlobPermissions.List | SharedAccessBlobPermissions.Write;
+                        if (containerName != null)
+                        {
+                            container = blobClient.GetContainerReference(containerName);
+                            bool containerExists = await container.ExistsAsync();
+                            if(!containerExists)
+                                return NotFound("can't find your storage container with name " + containerName);
+                            
+                        }
+                        else
+                        {
+                            container = blobClient.GetContainerReference(Guid.NewGuid().ToString().ToLower());
+                            await container.CreateIfNotExistsAsync();
+                        }
 
-                        //Generate the shared access signature on the container, setting the constraints directly on the signature.
-                        string sasContainerToken = container.GetSharedAccessSignature(sasConstraints);
+                        if (container != null)
+                        {
+                            SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy();
+                            sasConstraints.SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(24);
+                            sasConstraints.Permissions = SharedAccessBlobPermissions.List | SharedAccessBlobPermissions.Write;
 
-                        //Return the URI string for the container, including the SAS token.
-                        return container.Uri + sasContainerToken;
+                            //Generate the shared access signature on the container, setting the constraints directly on the signature.
+                            string sasContainerToken = container.GetSharedAccessSignature(sasConstraints);
+
+                            //Return the URI string for the container, including the SAS token.
+                            var blobContainer = new
+                            {
+                                storageUrl = container.Uri + sasContainerToken,
+                               
+                            };
+                            return new ObjectResult(blobContainer) ;
+                        }
+                        else
+                        {
+                            return BadRequest("sorry, we can't create a new storage container"); 
+                        }                
+                        
                     }
                     else
                     {
-                        return "sorry, can't retrieve your azure storage account";
+                        return BadRequest("sorry, can't retrieve your azure storage account");
                     }
                 }
                 else
                 {
-                    return "sorry, can't retrieve your azure storage details from appsettings.js";
+                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js");
                 }
                
             }
             catch (Exception ex)
             {
-                return ex.Message;
+                return BadRequest(ex.Message);
             }
            
         }
