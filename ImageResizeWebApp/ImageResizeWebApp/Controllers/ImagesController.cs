@@ -22,6 +22,7 @@ namespace ImageResizeWebApp.Controllers
     {
         private readonly AzureStorageConfig _storageConfig;
         private string imageInfo;
+        private string userContainerName;
 
         public ImagesController(IOptions<AzureStorageConfig> config)
         {
@@ -100,11 +101,13 @@ namespace ImageResizeWebApp.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Upload(ICollection<IFormFile> files)
         {
+            bool isUploaded = false;
+            bool isQueued = false;
             try
             {          
-                bool isUploaded;
-                bool isQueued;
-
+               
+                if (files.Count == 0)
+                    return BadRequest("No files received from the upload");
                 foreach (var formFile in files)
                 {
                     if (IsImage(formFile))
@@ -124,16 +127,30 @@ namespace ImageResizeWebApp.Controllers
                     }
                     else
                     {
-                        return BadRequest("sorry, you have to upload an image.");
+                        return new UnsupportedMediaTypeResult();                        
                     }                   
-                }           
+                }
 
-                return new OkResult();
+                if (isUploaded)
+                {
+                    string userContainerName = imageInfo.Split(',')[0].ToString();
+                    return new AcceptedAtActionResult("GetThumbNails", "Images", userContainerName, null);
+                }                    
+                else
+                    return BadRequest("Look like the image couldnt upload to the storage");
+
+
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet("{containerName?}/thumbnails")]
+        public async Task<IActionResult> GetThumbNails(string containerName)
+        {
+            return new AcceptedAtActionResult("GetThumbNails", "Images", userContainerName, null);
         }
 
         private bool IsImage(IFormFile file)
@@ -173,8 +190,7 @@ namespace ImageResizeWebApp.Controllers
                     CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
                     await blockBlob.UploadFromStreamAsync(fileStream);
-                    imageInfo = containerName + "," + fileName;                  
-
+                    imageInfo = containerName + "," + fileName;                    
                     return await Task.FromResult(true);
                 }
               
