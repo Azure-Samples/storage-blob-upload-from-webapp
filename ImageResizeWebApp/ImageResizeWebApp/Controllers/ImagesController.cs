@@ -14,6 +14,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Auth;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
+using ImageResizeWebApp.Helpers;
 
 namespace ImageResizeWebApp.Controllers
 {
@@ -21,8 +22,6 @@ namespace ImageResizeWebApp.Controllers
     public class ImagesController : Controller
     {
         private readonly AzureStorageConfig _storageConfig;
-        private string imageInfo;
-        private string userContainerName;
 
         public ImagesController(IOptions<AzureStorageConfig> config)
         {
@@ -101,27 +100,35 @@ namespace ImageResizeWebApp.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Upload(ICollection<IFormFile> files)
         {
-            bool isUploaded = false;
+            string uploadedfileName = string.Empty;
             bool isQueued = false;
             try
             {          
                
                 if (files.Count == 0)
                     return BadRequest("No files received from the upload");
+
+                if(_storageConfig.AccountKey == string.Empty || _storageConfig.AccountName == string.Empty)
+                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
+
+                if (_storageConfig.ImageContainer == string.Empty)
+                    return BadRequest("Please provide a name for your image container in the azure blob storage");
+
+
                 foreach (var formFile in files)
                 {
-                    if (IsImage(formFile))
+                    if (StorageHelper.IsImage(formFile))
                     {
                         if (formFile.Length > 0)
                         {
                             using (Stream stream = formFile.OpenReadStream())
                             {
-                                isUploaded = await UploadFileToStorage(stream, formFile.FileName);
+                                uploadedfileName = await StorageHelper.UploadFileToStorage(stream, formFile.FileName,_storageConfig);
                             }
 
-                            if (isUploaded)
+                            if (uploadedfileName != string.Empty)
                             {
-                                isQueued = await CreateQueueItem(imageInfo);
+                                isQueued = await StorageHelper.CreateQueueItem(uploadedfileName, _storageConfig);
                             }
                         }
                     }
@@ -131,10 +138,12 @@ namespace ImageResizeWebApp.Controllers
                     }                   
                 }
 
-                if (isUploaded)
+                if (uploadedfileName != string.Empty)
                 {
-                    string userContainerName = imageInfo.Split(',')[0].ToString();
-                    return new AcceptedAtActionResult("GetThumbNails", "Images", userContainerName, null);
+                    if(_storageConfig.ThumbnailContainer != string.Empty)
+                        return new AcceptedAtActionResult("GetThumbNails", "Images", null, null);
+                    else
+                        return new AcceptedResult();
                 }                    
                 else
                     return BadRequest("Look like the image couldnt upload to the storage");
@@ -147,90 +156,27 @@ namespace ImageResizeWebApp.Controllers
             }
         }
 
-        [HttpGet("{containerName?}/thumbnails")]
+        [HttpGet("thumbnails")]
         public async Task<IActionResult> GetThumbNails(string containerName)
         {
-            return new AcceptedAtActionResult("GetThumbNails", "Images", userContainerName, null);
-        }
-
-        private bool IsImage(IFormFile file)
-        {
-            if (file.ContentType.Contains("image"))
+            try
             {
-                return true;
-            }
-
-            string[] formats = new string[] { ".jpg", ".png", ".gif", ".jpeg" }; // add more if u like...
-
-            // linq from Henrik Stenbæk
-            return formats.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private async Task<bool> UploadFileToStorage(Stream fileStream, string fileName)
-        {
-            string containerName = Guid.NewGuid().ToString().ToLower();
-
-            if (_storageConfig != null)
-            {
-                StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-
-                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-                if (storageAccount != null)
+                if (_storageConfig != null)
                 {
-                    // Create the blob client.
-                    CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-                    // Retrieve reference to a previously created container.
-                    CloudBlobContainer container = blobClient.GetContainerReference(containerName);
-
-                    await container.CreateIfNotExistsAsync();
-
-                    // Retrieve reference to a blob named "myblob".
-                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
-
-                    await blockBlob.UploadFromStreamAsync(fileStream);
-                    imageInfo = containerName + "," + fileName;                    
-                    return await Task.FromResult(true);
+                    List<string> thumbnailUrls = await StorageHelper.GetThumbNailUrls(_storageConfig);
+                    return new ObjectResult(thumbnailUrls);
                 }
-              
-            }
-
-            return await Task.FromResult(false);
-        }
-
-        private async Task<bool> CreateQueueItem(string imageInfo)
-        {
-            if (_storageConfig != null)
-            {
-                StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-
-                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-                if (storageAccount != null && imageInfo != string.Empty)
+                else
                 {
-                    // Create the queue client.
-                    CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-
-                    // Retrieve a reference to a queue.
-                    CloudQueue queue = queueClient.GetQueueReference(_storageConfig.QueueName);
-
-                    // Create the queue if it doesn't already exist.
-                    await queue.CreateIfNotExistsAsync();
-
-                    // Create a message and add it to the queue.
-                    CloudQueueMessage message = new CloudQueueMessage(imageInfo);
-
-                    await queue.AddMessageAsync(message);
-
-                    return await Task.FromResult(true);
+                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js");
                 }
-
             }
-            return await Task.FromResult(false);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+           
         }
-
-
 
     }
 }
