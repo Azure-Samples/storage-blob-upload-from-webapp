@@ -29,7 +29,7 @@ namespace ImageResizeWebApp.Controllers
             _storageConfig = config.Value;
         }
 
-        // this API is for workstream #2 and not yet used / implemented fully
+        // this API action is for workstream #2 and not yet used / implemented fully
         [HttpGet("[action]/{containerName?}")]
         public async Task<IActionResult> Storage(string containerName)
         {
