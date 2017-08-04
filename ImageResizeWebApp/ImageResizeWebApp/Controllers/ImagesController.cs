@@ -21,6 +21,7 @@ namespace ImageResizeWebApp.Controllers
     [Route("api/[controller]")]
     public class ImagesController : Controller
     {
+        // make sure that appsettings.json is filled with the necessary details of the azure storage
         private readonly AzureStorageConfig _storageConfig;
 
         public ImagesController(IOptions<AzureStorageConfig> config)
@@ -28,6 +29,7 @@ namespace ImageResizeWebApp.Controllers
             _storageConfig = config.Value;
         }
 
+        // this API is for workstream #2 and not yet used / implemented fully
         [HttpGet("[action]/{containerName?}")]
         public async Task<IActionResult> Storage(string containerName)
         {
@@ -97,6 +99,7 @@ namespace ImageResizeWebApp.Controllers
            
         }
 
+        // POST /api/images/upload
         [HttpPost("[action]")]
         public async Task<IActionResult> Upload(ICollection<IFormFile> files)
         {
@@ -156,6 +159,7 @@ namespace ImageResizeWebApp.Controllers
             }
         }
 
+        // GET /api/images/thumbnails
         [HttpGet("thumbnails")]
         public async Task<IActionResult> GetThumbNails(string containerName)
         {

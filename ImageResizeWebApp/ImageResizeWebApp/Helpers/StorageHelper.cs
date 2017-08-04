@@ -99,8 +99,6 @@ namespace ImageResizeWebApp.Helpers
                 int i = 0;
                 BlobContinuationToken continuationToken = null;
                 BlobResultSegment resultSegment = null;
-
-
                 //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
                 //When the continuation token is null, the last page has been returned and execution can exit the loop.
                 do
