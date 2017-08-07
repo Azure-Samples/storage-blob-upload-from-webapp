@@ -59,10 +59,7 @@
             </form>
         </div>
         <h2>Stored images</h2>
-            <div id="stored-images">
-                <a href="https://azuresampleimage.blob.core.windows.net/thumbnails/Best-Android-Logo-Image.png"></a>
-                <a href="https://azuresampleimage.blob.core.windows.net/thumbnails/VS.png"></a>
-            </div>
+            <div id="stored-images"></div>
 
             <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
             <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
@@ -84,9 +81,10 @@
     </div>
 </main>
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
 <!-- Dropzone.js configuration  -->
 <script>
@@ -100,20 +98,43 @@
 
 <!-- blueimp-gallery configs  -->
 <script>
-    // Grab links for images in storage container from backend api
-    //$.get("api/Images/thumbnails", function(data) {
-    //    $("#stored-images")
-    //});
-
-    // Add the links to #stored-images element
+    
     $(() => {
-        // Setup Gallery Carousel
-        blueimp.Gallery(
-            $("#stored-images a"), 
-            {
-                container: '#blueimp-gallery-carousel',
-                carousel: true
-            }
-        );
+        // Init gallery
+        var img1 = "https://azuresampleimage.blob.core.windows.net/thumbnails/Best-Android-Logo-Image.png"
+        var img2 = "https://azuresampleimage.blob.core.windows.net/thumbnails/VS.png"
+        var gallery = blueimp.Gallery(
+                            [ img1, img2 ], // gallery links array
+                            {
+                                container: '#blueimp-gallery-carousel',
+                                carousel: true
+                            } // gallery options
+                        );
+
+        // Grab links for images from backend api
+        function fetchImageLinks() {
+            // Fetch images
+            $.get("api/Images/thumbnails", function(fetchedImageLinks) {
+                // check if images are equal to array
+                var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
+                if ( imageLinksEqual ) {
+                    // do nothing
+                } else {
+                    // update gallery
+                    var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
+
+                    // Only add new images
+                    gallery.add(newImageLinks)
+                }
+            });
+        } 
+
+        fetchImageLinks()
+
+        // Setup interval
+        var intervalMs = 3000 // every 3 secs
+        setInterval(() => {
+            fetchImageLinks()
+        }, intervalMs)
     })
 </script>
