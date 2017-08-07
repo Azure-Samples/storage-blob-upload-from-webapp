@@ -12,6 +12,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/css/blueimp-gallery.min.css" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
 
+<script>
+    // "myAwesomeDropzone" is the camelized version of the HTML element's ID
+    Dropzone.options.imageUpload = {
+        paramName: "files", // The name that will be used to transfer the file
+        createImageThumbnails: false, // Whether thumbnails for images should be generated
+        dictDefaultMessage: "Drop files here or Click to Upload"
+    };
+</script>
+
 <style>
     .dropzone {
         border: 3px dashed #00a1f1;
@@ -41,7 +50,7 @@
         <hr>
         <h2>Upload a picture</h2>
         <div>
-            <form action="http://imageresizewebapp.azurewebsites.net/api/images/upload"
+            <form action="/api/images/upload"
                  class="dropzone needsclick dz-clickable" 
                  id="image-upload"
                  method="post"
