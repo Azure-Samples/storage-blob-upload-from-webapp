@@ -45,6 +45,7 @@
     }
 </style>
 
+
 <main>
     <div class="box header">
         <h1><span class="fa fa-user-circle-o"></span> <span id="page-title">ImageResizer</span></h1>
@@ -98,14 +99,7 @@
 
 <script>
     $(() => {
-        /* Dropzone */
-        // "imageUpload" is the camelized version of the HTML element's ID
-        Dropzone.options.imageUpload = {
-            paramName: "files", // The name that will be used to transfer the file
-            dictDefaultMessage: "Drop files here or Click to Upload",
-            addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
-        };
-        /* /Dropzone */
+        
 
         /* Gallery */
 
@@ -153,4 +147,16 @@
 
         /* /Gallery */
     })
+</script>
+
+
+<script>
+    /* Dropzone */
+    // "imageUpload" is the camelized version of the HTML element's ID
+    Dropzone.options.imageUpload = {
+        paramName: "files", // The name that will be used to transfer the file
+        dictDefaultMessage: "Drop files here or Click to Upload",
+        addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
+    };
+    /* /Dropzone */
 </script>
