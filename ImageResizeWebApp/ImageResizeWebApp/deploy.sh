@@ -3,8 +3,6 @@
 # Assumes user is logged in already via "az login"
 # Alternatively this can be run from Azure Cloud Shell in the portal
 
-# This deploy script requires setting a "Personal Access Token with Github" with "repo" privileges
-# Guide: https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
 
 # Replace the following URL with a public GitHub repo URL
 gitrepo=https://github.com/Azure-Samples/integration-image-upload-resize-storage-functions
@@ -12,6 +10,11 @@ resourceGroup=imageResizer
 webappname=imageResizerWeb
 appServicePlanSKU=FREE
 resourceGroupRegion=westus
+
+# This deploy script requires setting a "Personal Access Token with Github" with "repo" privileges
+# Guide: https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
+# Do not commit your GitHub Personal Access Token to git
+#    Instead, add it as a local environment variable called "GITHUB_TOKEN", the script will reference that env variable
 githubSouceControlToken=$GITHUB_TOKEN
 
 # Create a resource group.
