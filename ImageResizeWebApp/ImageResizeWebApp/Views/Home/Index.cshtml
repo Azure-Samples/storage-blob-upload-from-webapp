@@ -59,6 +59,7 @@
             </form>
         </div>
         <h2>Stored images</h2>
+            <p><em>Gallery refreshes from storage container image links every 5 seconds.</em></p>
             <div id="stored-images"></div>
 
             <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
@@ -86,55 +87,61 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
-<!-- Dropzone.js configuration  -->
 <script>
-    // "imageUpload" is the camelized version of the HTML element's ID
-    Dropzone.options.imageUpload = {
-        paramName: "files", // The name that will be used to transfer the file
-        dictDefaultMessage: "Drop files here or Click to Upload",
-        addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
-    };
-</script>
-
-<!-- blueimp-gallery configs  -->
-<script>
-    
     $(() => {
-        // Init gallery
-        var img1 = "https://azuresampleimage.blob.core.windows.net/thumbnails/Best-Android-Logo-Image.png"
-        var img2 = "https://azuresampleimage.blob.core.windows.net/thumbnails/VS.png"
-        var gallery = blueimp.Gallery(
-                            [ img1, img2 ], // gallery links array
-                            {
-                                container: '#blueimp-gallery-carousel',
-                                carousel: true
-                            } // gallery options
-                        );
+        /* Dropzone */
+        // "imageUpload" is the camelized version of the HTML element's ID
+        Dropzone.options.imageUpload = {
+            paramName: "files", // The name that will be used to transfer the file
+            dictDefaultMessage: "Drop files here or Click to Upload",
+            addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
+        };
+        /* /Dropzone */
+
+        /* Gallery */
+
+        // init gallery for later use
+        var gallery;
 
         // Grab links for images from backend api
         function fetchImageLinks() {
             // Fetch images
             $.get("api/Images/thumbnails", function(fetchedImageLinks) {
-                // check if images are equal to array
-                var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
-                if ( imageLinksEqual ) {
-                    // do nothing
-                } else {
-                    // update gallery
-                    var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
+                // Check if we have a gallery initialized
+                if ( gallery ) {
+                    // check if images are equal to array
+                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
+                    if ( imageLinksEqual ) {
+                        // do nothing
+                    } else {
+                        // update gallery
+                        var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
 
-                    // Only add new images
-                    gallery.add(newImageLinks)
-                }
+                        // Only add new images
+                        gallery.add(newImageLinks)
+                    }
+                } else {
+                    // initialize gallery
+                    gallery = blueimp.Gallery(
+                                fetchedImageLinks, // gallery links array
+                                {
+                                    container: '#blueimp-gallery-carousel',
+                                    carousel: true
+                                } // gallery options
+                            );
+                }                
             });
         } 
 
+        // Start first interval
         fetchImageLinks()
 
         // Setup interval
-        var intervalMs = 3000 // every 3 secs
+        var intervalMs = 5000 // every 5 secs
         setInterval(() => {
             fetchImageLinks()
         }, intervalMs)
+
+        /* /Gallery */
     })
 </script>
