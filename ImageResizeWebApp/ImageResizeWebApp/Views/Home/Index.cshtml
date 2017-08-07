@@ -9,8 +9,16 @@
 
 
 <style>
+    html {
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
     main {
         margin: 20px;
+    }
+
+    #gallery-note {
+        font-size: smaller
     }
 
     .blueimp-gallery {
@@ -29,6 +37,7 @@
     }
 
     .dropzone .dz-message .note {
+        font-family: sans-serif;
         font-size: 18px;
         font-weight: 200;
         display: block;
@@ -59,7 +68,7 @@
             </form>
         </div>
         <h2>Stored images</h2>
-            <p><em>Gallery refreshes from storage container image links every 5 seconds.</em></p>
+            <p><span id="gallery-note">Gallery refreshes from storage container image links every 5 seconds.</span></p>
             <div id="stored-images"></div>
 
             <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
