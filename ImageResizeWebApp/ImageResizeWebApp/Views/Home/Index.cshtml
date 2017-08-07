@@ -2,26 +2,17 @@
     ViewData["Title"] = "Home Page";
 }
 
-<!-- Dropzone.js required  -->
+<!-- Client side libs required  -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.css" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.js"></script>
-
-<script src="https://use.fontawesome.com/bc4f54b80b.js"></script>
-
-<!-- blueimp-gallery support  -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/css/blueimp-gallery.min.css" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
 
-<script>
-    // "imageUpload" is the camelized version of the HTML element's ID
-    Dropzone.options.imageUpload = {
-        paramName: "files", // The name that will be used to transfer the file
-        dictDefaultMessage: "Drop files here or Click to Upload",
-        addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
-    };
-</script>
 
 <style>
+    main {
+        margin: 20px;
+    }
+
     .dropzone {
         border: 3px dashed #00a1f1;
         background: #F0F8FF;
@@ -41,14 +32,14 @@
     }
 </style>
 
-<div class="wrapper">
+<main>
     <div class="box header">
         <h1><span class="fa fa-user-circle-o"></span> <span id="page-title">ImageResizer</span></h1>
     </div>
     
     <div class="box content">
         <hr>
-        <h2>Upload a picture</h2>
+        <h2>Upload photos</h2>
         <div>
             <form action="/api/images/upload"
                  class="dropzone needsclick dz-clickable" 
@@ -64,23 +55,19 @@
             </form>
         </div>
         <h2>Stored images</h2>
-            <div id="images">
+            <div id="stored-images">
+                <a href="https://azuresampleimage.blob.core.windows.net/thumbnails/Best-Android-Logo-Image.png"></a>
+                <a href="https://azuresampleimage.blob.core.windows.net/thumbnails/VS.png"></a>
+            </div>
 
-            <!-- The Gallery as lightbox dialog, should be a child element of the document body -->
-            <div id="blueimp-gallery" class="blueimp-gallery">
+            <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
+            <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
                 <div class="slides"></div>
                 <h3 class="title"></h3>
                 <a class="prev">‹</a>
                 <a class="next">›</a>
-                <a class="close">×</a>
                 <a class="play-pause"></a>
                 <ol class="indicator"></ol>
-            </div>
-
-            <div id="links">
-                <a href="" title="">
-                    <img src="" alt="">
-                </a>
             </div>
         </div>
     </div>
@@ -91,4 +78,38 @@
                 Your images will be public once you upload them and there is no automated way to remove them.</p>
         </div>
     </div>
-</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<!-- Dropzone.js configuration  -->
+<script>
+    // "imageUpload" is the camelized version of the HTML element's ID
+    Dropzone.options.imageUpload = {
+        paramName: "files", // The name that will be used to transfer the file
+        dictDefaultMessage: "Drop files here or Click to Upload",
+        addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
+    };
+</script>
+
+<!-- blueimp-gallery configs  -->
+<script>
+    // Grab links for images in storage container from backend api
+    //$.get("api/Images/thumbnails", function(data) {
+    //    $("#stored-images")
+    //});
+
+    // Add the links to #stored-images element
+    $(() => {
+        // Setup Gallery Carousel
+        blueimp.Gallery(
+            $("#stored-images a"), 
+            {
+                container: '#blueimp-gallery-carousel',
+                carousel: true
+            }
+        );
+    })
+</script>
