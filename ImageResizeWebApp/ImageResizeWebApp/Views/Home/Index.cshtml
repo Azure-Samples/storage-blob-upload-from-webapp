@@ -13,11 +13,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
 
 <script>
-    // "myAwesomeDropzone" is the camelized version of the HTML element's ID
+    // "imageUpload" is the camelized version of the HTML element's ID
     Dropzone.options.imageUpload = {
         paramName: "files", // The name that will be used to transfer the file
-        createImageThumbnails: false, // Whether thumbnails for images should be generated
-        dictDefaultMessage: "Drop files here or Click to Upload"
+        dictDefaultMessage: "Drop files here or Click to Upload",
+        addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
     };
 </script>
 
