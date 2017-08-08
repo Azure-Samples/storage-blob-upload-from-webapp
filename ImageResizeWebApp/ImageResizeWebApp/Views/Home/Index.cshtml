@@ -112,6 +112,8 @@
             $.get("api/Images/thumbnails", function(fetchedImageLinks) {
                 // Check if anything is in there
                 if ( _.isEmpty(fetchedImageLinks) ){
+                    // do nothing
+                } else {
                     // Check if we have a gallery initialized
                     if ( _.isEmpty(gallery) ) {
                         // initialize gallery
