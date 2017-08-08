@@ -110,29 +110,33 @@
         function fetchImageLinks() {
             // Fetch images
             $.get("api/Images/thumbnails", function(fetchedImageLinks) {
-                // Check if we have a gallery initialized
-                if ( typeof gallery !== 'undefined' ) {
-                    // check if images are equal to array
-                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
-                    if ( imageLinksEqual ) {
-                        // do nothing
+                // Check if anything is in there
+                if ( _.isEmpty(fetchedImageLinks) ){
+                    // Check if we have a gallery initialized
+                    if ( _.isEmpty(gallery) ) {
+                        // initialize gallery
+                        gallery = blueimp.Gallery(
+                                    fetchedImageLinks, // gallery links array
+                                    {
+                                        container: '#blueimp-gallery-carousel',
+                                        carousel: true
+                                    } // gallery options
+                                );                    
                     } else {
-                        // update gallery
-                        var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
+                        // check if images are equal to array
+                        var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
+                        if ( imageLinksEqual ) {
+                            // do nothing
+                        } else {
+                            // update gallery
+                            var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
 
-                        // Only add new images
-                        gallery.add(newImageLinks)
-                    }
-                } else {
-                    // initialize gallery
-                    gallery = blueimp.Gallery(
-                                fetchedImageLinks, // gallery links array
-                                {
-                                    container: '#blueimp-gallery-carousel',
-                                    carousel: true
-                                } // gallery options
-                            );
-                }                
+                            // Only add new images
+                            gallery.add(newImageLinks)
+                        }
+                    }       
+                }
+                         
             });
         } 
 
