@@ -111,7 +111,7 @@
             // Fetch images
             $.get("api/Images/thumbnails", function(fetchedImageLinks) {
                 // Check if we have a gallery initialized
-                if ( gallery ) {
+                if ( typeof gallery !== 'undefined' ) {
                     // check if images are equal to array
                     var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
                     if ( imageLinksEqual ) {
