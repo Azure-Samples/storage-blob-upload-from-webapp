@@ -6,7 +6,8 @@
 
 ## General settings ##
 # Replace the following URL with a private/public GitHub repo URL
-gitrepo=https://github.com/Azure-Samples/integration-image-upload-resize-storage-functions
+webappGitrepo=https://github.com/Azure-Samples/integration-image-upload-resize-storage-functions
+funcGitrepo=https://github.com/Azure-Samples/function-image-upload-resize
 
 ## App Service (Web App) settings ##
 webAppName=imageResizerWeb
@@ -94,16 +95,28 @@ az functionapp create --name $functionName \
                       --resource-group myResourceGroup \
                       --consumption-plan-location westus
 
+# Deploy functiona app code from a private GitHub repository. 
+# GitHub Personal Access Token is only required for private repos and can be removed for public repos
+echo
+echo "Configuring deployment config for Function App: $functionName"
+az functionapp deployment source config --name $functionName \
+                                        --resource-group myResourceGroup \
+                                        --repo-url $funcGitrepo \
+                                        --git-token $githubSouceControlToken \
+                                        --branch master \
+                                        --manual-integration
+
 # Set function app settings
 echo
-echo "Configuring Function App $functionName environment settings based on myResourceGroup resources."
+echo "Configuring Function App $functionName environment settings"
 az functionapp config appsettings set --name $functionName \
                                       --resource-group myResourceGroup \
-                                      --settings STORAGE_CONNECTION_STRING=$storageConnectionString QUEUE=$queueName IMAGES_CONTAINER=$imagesContainerName THUMBNAIL_CONTAINER=$thumbnailsContainerName
+                                      --settings STORAGE_CONNECTION_STRING=$storageConnectionString QUEUE=$queueName
+
 
 # Create an App Service plan
 echo
-echo "Creating App Service Plan: $webAppName using SKU: FREE under Resource Group: myResourceGroup"
+echo "Creating App Service Plan: $webAppName using SKU FREE"
 az appservice plan create --name $webAppName \
                           --resource-group myResourceGroup \
                           --sku FREE
@@ -115,20 +128,20 @@ az webapp create --name $webAppName \
                  --resource-group myResourceGroup \
                  --plan $webAppName
 
-# Deploy code from a private/public GitHub repository. 
+# Deploy webapp code from a private GitHub repository. 
 # GitHub Personal Access Token is only required for private repos and can be removed for public repos
 echo
 echo "Configuring deployment config for WebApp: $webAppName"
 az webapp deployment source config --name $webAppName \
                                    --resource-group myResourceGroup \
-                                   --repo-url $gitrepo \
+                                   --repo-url $webappGitrepo \
                                    --git-token $githubSouceControlToken \
                                    --branch master \
                                    --manual-integration
 
 # Configure app settings
 echo 
-echo 'Configuring App Service (Web App) environment settings based on myResourceGroup resources.'
+echo "Configuring Web App $webAppName environment settings"
 az webapp config appsettings set --name $webAppName \
                                  --resource-group myResourceGroup \
                                  --settings AzureStorageConfig:AccountName=$storageName AzureStorageConfig:AccountKey=$storageAccountKey AzureStorageConfig:QueueName=$queueName AzureStorageConfig:ImageContainer=$imagesContainerName AzureStorageConfig:ThumbnailContainer=$thumbnailsContainerName
@@ -138,15 +151,3 @@ echo
 echo "Browsing to: $webAppName" 
 az webapp browse --name $webAppName \
                  --resource-group myResourceGroup
-
-## Go to the function app within portal and copy the files from "functionApp" folder to the function on the web ##
-# Create a Queue Trigger C# Function (using files from folder "functionApp")
-# 	1. In the Function Designer in the Azure Portal	
-# 		a. Copy and paste the code from run.csx into the function's run.csx
-# 		b. Click view files in the right pane, +Add a new file for project.json, and copy the code from project.json
-# 		c. Go to Integrate, in the top right click Advanced Editor, copy the code from function.json
-# 		d. Save everything
-
-
-# Clean up by destroying resources with:
-# az group delete --name myResourceGroup
