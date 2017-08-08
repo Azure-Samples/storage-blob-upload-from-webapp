@@ -131,7 +131,7 @@ echo
 echo 'Configuring App Service (Web App) environment settings based on myResourceGroup resources.'
 az webapp config appsettings set --name $webAppName \
                                  --resource-group myResourceGroup \
-                                 --settings AZURE_STORAGE_NAME=$storageName AZURE_STORAGE_KEY=$storageAccountKey QUEUE=$queueName IMAGES_CONTAINER=$imagesContainerName THUMBNAIL_CONTAINER=$thumbnailsContainerName
+                                 --settings AzureStorageConfig:AccountName=$storageName AzureStorageConfig:AccountKey=$storageAccountKey AzureStorageConfig:QueueName=$queueName AzureStorageConfig:ImageContainer=$imagesContainerName AzureStorageConfig:ThumbnailContainer=$thumbnailsContainerName
 
 # Browse to web app.
 echo
