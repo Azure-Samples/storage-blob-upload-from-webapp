@@ -10,7 +10,7 @@ webappGitrepo=https://github.com/Azure-Samples/integration-image-upload-resize-s
 funcGitrepo=https://github.com/Azure-Samples/function-image-upload-resize
 
 ## App Service (Web App) settings ##
-webAppName=imageResizerWeb
+webAppName=imageResizerWeb$RANDOM
 
 ## Github Personal Access Token ##
 # This deploy script requires setting a "Personal Access Token with Github" with "repo" privileges for private repo (while in testing mode)
@@ -23,13 +23,13 @@ githubSouceControlToken=$GITHUB_TOKEN
 
 ## Function Settings ##
 # Function name has been lowercased to be used in Storage name creation
-functionName=imageresizefunc
+functionName=imageresizefunc$RANDOM
 
 ## Storage Settings ##
 # Substitute your own globally unique storage account name.
 # Storage account names must be between 3 and 24 characters 
 #    in length and may contain numbers and lowercase letters only.
-storageName="$functionName$RANDOM"
+storageName="stor$functionName"
 queueName=imageprocessing
 imagesContainerName=images
 thumbnailsContainerName=thumbnails
