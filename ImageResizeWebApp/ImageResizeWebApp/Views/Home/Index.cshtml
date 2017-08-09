@@ -136,29 +136,16 @@
                     } else {
                         console.log('images arr are not equal')
 
-                        // Check for storage thumbnail deletions
-                        if ( fetchedImageLinks.length < gallery.list.length) {
-                            // Something has been deleted
-                            console.log('a thumbnail has been deleted, re-initializing gallery')
-                            gallery = blueimp.Gallery(
-                                fetchedImageLinks, // gallery links array
-                                {
-                                    container: '#blueimp-gallery-carousel',
-                                    carousel: true
-                                } // gallery options
-                            );
-                        } else {
-                            // update gallery
-                            var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
+                        // update gallery
+                        var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
 
-                            console.log('differene is: ')
-                            console.log(newImageLinks)
-                            // Only add new images
-                            gallery.add(newImageLinks);
+                        console.log('differene is: ')
+                        console.log(newImageLinks)
+                        // Only add new images
+                        gallery.add(newImageLinks);
 
-                            // Force image load
-                            gallery.next();
-                        }
+                        // Force image load
+                        gallery.next();
                     }
                 }       
             }     
