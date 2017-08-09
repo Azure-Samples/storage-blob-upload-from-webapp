@@ -100,6 +100,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
 <script>
+    // Disabling autoDiscover, otherwise Dropzone will try to attach twice.
+    Dropzone.autoDiscover = false;
+
     $(() => {
         /* Gallery */
 
@@ -126,21 +129,24 @@
             });
         } 
 
-        /* Dropzone */
-        // "imageUpload" is the camelized version of the HTML element's ID
-        Dropzone.options.imageUpload = {
-            paramName: "files", // The name that will be used to transfer the file
-            dictDefaultMessage: "Drop files here or Click to Upload",
-            addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
-            init: function() {
-                this.on("success", function(file, response) {
+        // Init dropzone
+        var myDropzone = new Dropzone("#image-upload", {
+            url: "/api/images/upload",
+            paramName: "files",
+            addRemoveLinks: true
+        });
+
+        // Handle success and update gallery
+        myDropzone.on("success", function(file, response) {
                     console.log("Success");
                     fetchImageLinks();
                     console.log(response);
-                });                    
-            }
-        };
-        /* /Dropzone */
+        })
+
+        // Remove files after uploading
+        myDropzone.on("complete", function(file) {
+            myDropzone.removeFile(file);
+        })
 
         // Start first interval
         fetchImageLinks()
