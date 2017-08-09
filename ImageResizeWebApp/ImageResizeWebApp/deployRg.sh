@@ -4,13 +4,16 @@
 # Assumes user is logged in already via "az login"
 # Alternatively this can be run from Azure Cloud Shell in the portal
 
+# Random number generator for guids
+RANDOM_NUM=$RANDOM
+
 ## General settings ##
 # Replace the following URL with a private/public GitHub repo URL
 webappGitrepo=https://github.com/Azure-Samples/integration-image-upload-resize-storage-functions
 funcGitrepo=https://github.com/Azure-Samples/function-image-upload-resize
 
 ## App Service (Web App) settings ##
-webAppName=imageResizerWeb$RANDOM
+webAppName=imageResizerWeb$RANDOM_NUM
 
 ## Github Personal Access Token ##
 # This deploy script requires setting a "Personal Access Token with Github" with "repo" privileges for private repo (while in testing mode)
@@ -23,7 +26,7 @@ githubSouceControlToken=$GITHUB_TOKEN
 
 ## Function Settings ##
 # Function name has been lowercased to be used in Storage name creation
-functionName=imageresizefunc$RANDOM
+functionName=imageresizefunc$RANDOM_NUM
 
 ## Storage Settings ##
 # Substitute your own globally unique storage account name.
@@ -107,7 +110,7 @@ echo
 echo "Configuring Function App $functionName environment settings"
 az functionapp config appsettings set --name $functionName \
                                       --resource-group myResourceGroup \
-                                      --settings STORAGE_CONNECTION_STRING=$storageConnectionString QUEUE=$queueName PROJECT=ImageResizeWebApp/ImageResizeFunctionApp
+                                      --settings STORAGE_CONNECTION_STRING=$storageConnectionString QUEUE=$queueName
 
 
 # Create an App Service plan
