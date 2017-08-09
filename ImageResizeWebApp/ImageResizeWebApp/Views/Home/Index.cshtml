@@ -101,6 +101,20 @@
 
 <script>
     $(() => {
+        /* Dropzone */
+        // "imageUpload" is the camelized version of the HTML element's ID
+        Dropzone.options.imageUpload = {
+            paramName: "files", // The name that will be used to transfer the file
+            dictDefaultMessage: "Drop files here or Click to Upload",
+            addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
+            success: function (file, response) {
+                console.log("Success");
+                fetchImageLinks()
+                console.log(response);
+            }
+        };
+        /* /Dropzone */
+
         /* Gallery */
 
         // init gallery for later use
@@ -137,21 +151,4 @@
 
         /* /Gallery */
     })
-</script>
-
-<!-- Keep the script at the bottom, needs to be called after loading.  -->
-<script>
-    /* Dropzone */
-    // "imageUpload" is the camelized version of the HTML element's ID
-    Dropzone.options.imageUpload = {
-        paramName: "files", // The name that will be used to transfer the file
-        dictDefaultMessage: "Drop files here or Click to Upload",
-        addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
-        success: function (file, response) {
-            console.log("Success");
-            fetchImageLinks()
-            console.log(response);
-        }
-    };
-    /* /Dropzone */
 </script>
