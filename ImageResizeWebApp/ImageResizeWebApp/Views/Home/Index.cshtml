@@ -24,6 +24,7 @@
     .blueimp-gallery {
         margin: 25px;
         max-width: 200px;
+        max-height: 250px;
     }
 
     .dropzone {
@@ -129,10 +130,10 @@
         fetchImageLinks()
 
         // Setup interval
-        var intervalMs = 5000 // every 5 secs
-        setInterval(() => {
-            fetchImageLinks()
-        }, intervalMs)
+        //var intervalMs = 15000 // every 15 secs
+        //setInterval(() => {
+        //    fetchImageLinks()
+        //}, intervalMs)
 
         /* /Gallery */
     })
@@ -145,7 +146,12 @@
     Dropzone.options.imageUpload = {
         paramName: "files", // The name that will be used to transfer the file
         dictDefaultMessage: "Drop files here or Click to Upload",
-        addRemoveLinks: true // Allows for cancellation of file upload and remove thumbnail
+        addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
+        success: function (file, response) {
+            console.log("Success");
+            fetchImageLinks()
+            console.log(response);
+        }
     };
     /* /Dropzone */
 </script>
