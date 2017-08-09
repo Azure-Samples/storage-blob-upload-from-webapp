@@ -101,6 +101,11 @@
 
 <script>
     $(() => {
+        /* Gallery */
+
+        // init gallery for later use
+        var gallery;
+
         // Grab links for images from backend api
         function fetchImageLinks() {
             // Fetch images
@@ -137,11 +142,6 @@
             }
         };
         /* /Dropzone */
-
-        /* Gallery */
-
-        // init gallery for later use
-        var gallery;
 
         // Start first interval
         fetchImageLinks()
