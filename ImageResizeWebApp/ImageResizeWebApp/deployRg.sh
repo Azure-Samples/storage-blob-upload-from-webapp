@@ -107,7 +107,7 @@ echo
 echo "Configuring Function App $functionName environment settings"
 az functionapp config appsettings set --name $functionName \
                                       --resource-group myResourceGroup \
-                                      --settings STORAGE_CONNECTION_STRING=$storageConnectionString QUEUE=$queueName
+                                      --settings STORAGE_CONNECTION_STRING=$storageConnectionString QUEUE=$queueName PROJECT=ImageResizeWebApp/ImageResizeFunctionApp
 
 
 # Create an App Service plan
