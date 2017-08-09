@@ -71,7 +71,7 @@
             </form>
         </div>
         <h2>Generated Thumbnails</h2>
-            <p><span id="gallery-note">Gallery refreshes from storage container image links every 5 seconds.</span></p>
+            <!-- <p><span id="gallery-note">Gallery refreshes from storage container image links every 5 seconds.</span></p> -->
             <div id="stored-images"></div>
 
             <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
@@ -101,25 +101,6 @@
 
 <script>
     $(() => {
-        /* Dropzone */
-        // "imageUpload" is the camelized version of the HTML element's ID
-        Dropzone.options.imageUpload = {
-            paramName: "files", // The name that will be used to transfer the file
-            dictDefaultMessage: "Drop files here or Click to Upload",
-            addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
-            success: function (file, response) {
-                console.log("Success");
-                fetchImageLinks()
-                console.log(response);
-            }
-        };
-        /* /Dropzone */
-
-        /* Gallery */
-
-        // init gallery for later use
-        var gallery;
-
         // Grab links for images from backend api
         function fetchImageLinks() {
             // Fetch images
@@ -139,6 +120,28 @@
                 }     
             });
         } 
+
+        /* Dropzone */
+        // "imageUpload" is the camelized version of the HTML element's ID
+        Dropzone.options.imageUpload = {
+            paramName: "files", // The name that will be used to transfer the file
+            dictDefaultMessage: "Drop files here or Click to Upload",
+            addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
+            init: function() {
+                    this.on("success", function(file, response) {
+                        console.log("Success");
+                        fetchImageLinks()
+                        console.log(response);
+                    })                    
+                }
+            }
+        };
+        /* /Dropzone */
+
+        /* Gallery */
+
+        // init gallery for later use
+        var gallery;
 
         // Start first interval
         fetchImageLinks()
