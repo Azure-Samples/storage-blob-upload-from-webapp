@@ -23,8 +23,8 @@
 
     .blueimp-gallery {
         margin: 25px;
-        max-width: 200px;
-        max-height: 250px;
+        max-width: 150px;
+        padding-bottom: 150px;
     }
 
     .dropzone {
@@ -32,6 +32,7 @@
         background: #F0F8FF;
         margin: 25px;
         border-radius: 5px;
+        max-width: 400px;
     }
 
     .dropzone .dz-message {
@@ -100,20 +101,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
 <script>
-    $(() => {
-        /* Gallery */
+    // init gallery for later use
+    var gallery;
 
-        // init gallery for later use
-        var gallery;
+    // Grab links for images from backend api
+    function fetchImageLinks() {
+        // Fetch images
+        $.get("api/Images/thumbnails", function(fetchedImageLinks) {
+            console.log(fetchedImageLinks)
 
-        // Grab links for images from backend api
-        function fetchImageLinks() {
-            // Fetch images
-            $.get("api/Images/thumbnails", function(fetchedImageLinks) {
-                // Check if anything is in there
-                if ( _.isEmpty(fetchedImageLinks) ){
-                    // do nothing
-                } else {
+            // Check if anything is in there
+            if ( _.isEmpty(fetchedImageLinks) ){
+                console.log('empty fetched')
+                // do nothing  
+            } else {
+                // Check if we have a gallery initialized
+                if ( _.isEmpty(gallery) ) {
                     // initialize gallery
                     gallery = blueimp.Gallery(
                                 fetchedImageLinks, // gallery links array
@@ -121,38 +124,52 @@
                                     container: '#blueimp-gallery-carousel',
                                     carousel: true
                                 } // gallery options
-                            ); 
-                }     
-            });
-        } 
+                            );                    
+                } else {
+                    // check if images are equal to array
+                    console.log('currently in gallery:')
+                    console.log(gallery.list)
+                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
+                    if ( imageLinksEqual ) {
+                        console.log('images arr are equal')
+                        // do nothing
+                    } else {
+                        console.log('images arr are not equal')
+                        // update gallery
+                        var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
 
-        Dropzone.autoDiscover = false;
-        /* Dropzone */
-        // "imageUpload" is the camelized version of the HTML element's ID
-        Dropzone.options.imageUpload = {
-            paramName: "files", // The name that will be used to transfer the file
-            dictDefaultMessage: "Drop files here or Click to Upload",
-            addRemoveLinks: true
-            //, // Allows for cancellation of file upload and remove thumbnail
-            //init: function() {
-            //    this.on("success", function(file, response) {
-            //        console.log("Success");
-            //        fetchImageLinks();
-            //        console.log(response);
-            //    });                    
-            //}
-        };
-        /* /Dropzone */
+                        console.log('differene is: ')
+                        console.log(newImageLinks)
+                        // Only add new images
+                        gallery.add(newImageLinks);
 
-        // Start first interval
+                        // Force image load
+                        gallery.next();
+                    }
+                }       
+            }     
+        });
+    }
+
+    // Start first interval
+    fetchImageLinks()
+    
+    setInterval(function() {
         fetchImageLinks()
+    }, 5000) 
 
-        // Setup interval
-        //var intervalMs = 15000 // every 15 secs
-        //setInterval(() => {
-        //    fetchImageLinks()
-        //}, intervalMs)
-
-        /* /Gallery */
-    })
+    /* Dropzone */
+    // "imageUpload" is the camelized version of the HTML element's ID
+    Dropzone.options.imageUpload = {
+        paramName: "files", // The name that will be used to transfer the file
+        dictDefaultMessage: "Drop files here or Click to Upload",
+        addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
+        init: function() {
+            myDropzone = this;
+            myDropzone.on("success", function(file, response) {
+                console.log("Success");
+                myDropzone.removeFile(file);
+            });                    
+        }
+    };
 </script>

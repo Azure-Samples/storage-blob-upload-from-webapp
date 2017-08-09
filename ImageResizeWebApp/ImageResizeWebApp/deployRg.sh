@@ -51,17 +51,13 @@ az storage account create --name $storageName \
 # Find the storage key for newly created storage account. Uses JMESPath syntax for --query
 echo
 echo "Finding first storage API key for Storage Account $storageName"
-storageAccountKey=$(az storage account keys list --resource-group myResourceGroup --account-name $storageName --query [0].value)
-# Remove leading and trailing double quotes
-storageAccountKey=$(sed -e 's/^"//' -e 's/"$//' <<<"$storageAccountKey")
+storageAccountKey=$(az storage account keys list --resource-group myResourceGroup --account-name $storageName --query [0].value --output tsv)
 echo $storageAccountKey
 
 # Find storage connection string. Uses JMESPath syntax for --query
 echo
 echo "Finding storage connection string for Storage Account $storageName"
-storageConnectionString=$(az storage account show-connection-string --resource-group myResourceGroup --name $storageName --query connectionString)
-# Remove leading and trailing double quotes
-storageConnectionString=$(sed -e 's/^"//' -e 's/"$//' <<<"$storageConnectionString")
+storageConnectionString=$(az storage account show-connection-string --resource-group myResourceGroup --name $storageName --query connectionString --output tsv)
 echo $storageConnectionString
                           
 # Create blog storage containers for images
