@@ -23,6 +23,7 @@
 
     .blueimp-gallery {
         margin: 25px;
+        max-width: 200px;
     }
 
     .dropzone {
@@ -99,8 +100,6 @@
 
 <script>
     $(() => {
-        
-
         /* Gallery */
 
         // init gallery for later use
@@ -114,31 +113,15 @@
                 if ( _.isEmpty(fetchedImageLinks) ){
                     // do nothing
                 } else {
-                    // Check if we have a gallery initialized
-                    if ( _.isEmpty(gallery) ) {
-                        // initialize gallery
-                        gallery = blueimp.Gallery(
-                                    fetchedImageLinks, // gallery links array
-                                    {
-                                        container: '#blueimp-gallery-carousel',
-                                        carousel: true
-                                    } // gallery options
-                                );                    
-                    } else {
-                        // check if images are equal to array
-                        var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
-                        if ( imageLinksEqual ) {
-                            // do nothing
-                        } else {
-                            // update gallery
-                            var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
-
-                            // Only add new images
-                            gallery.add(newImageLinks)
-                        }
-                    }       
-                }
-                         
+                    // initialize gallery
+                    gallery = blueimp.Gallery(
+                                fetchedImageLinks, // gallery links array
+                                {
+                                    container: '#blueimp-gallery-carousel',
+                                    carousel: true
+                                } // gallery options
+                            ); 
+                }     
             });
         } 
 
