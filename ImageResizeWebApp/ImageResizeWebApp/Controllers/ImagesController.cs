@@ -163,6 +163,7 @@ namespace ImageResizeWebApp.Controllers
         [HttpGet("thumbnails")]
         public async Task<IActionResult> GetThumbNails(string containerName)
         {
+            
             try
             {
                 if (_storageConfig != null)

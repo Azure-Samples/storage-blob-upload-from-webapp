@@ -41,11 +41,16 @@ namespace ImageResizeWebApp.Helpers
                 {
                     // Create the blob client.
                     CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
                     CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ImageContainer);
+
                     await container.CreateIfNotExistsAsync();
+
                     // Retrieve reference to a blob named "myblob".
                     CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
-                    await blockBlob.UploadFromStreamAsync(fileStream);                    ;
+
+                    await blockBlob.UploadFromStreamAsync(fileStream);
+
                     return await Task.FromResult(fileName);
                 }
 
@@ -89,16 +94,24 @@ namespace ImageResizeWebApp.Helpers
             try
             {
                 StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+
                 CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-                CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ThumbnailContainer);               
+
+                CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ThumbnailContainer);   
+                
                 await container.CreateIfNotExistsAsync();
+
                 await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
                 // Loop over items within the container and output the length and URI.
                 int i = 0;
+
                 BlobContinuationToken continuationToken = null;
+
                 BlobResultSegment resultSegment = null;
+
                 //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
                 //When the continuation token is null, the last page has been returned and execution can exit the loop.
                 do
