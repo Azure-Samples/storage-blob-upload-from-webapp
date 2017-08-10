@@ -39,15 +39,15 @@ thumbnailsContainerName=thumbnails
 
 # Create a resource group.
 echo
-echo "Creating Resource Group 'myResourceGroup' within region 'westus'"
-az group create --location westus \
+echo "Creating Resource Group 'myResourceGroup' within region 'eastus'"
+az group create --location eastus \
                 --name myResourceGroup
 
 # Create a storage account (Functions require a storage account)
 echo
 echo "Creating Storage Account $storageName within myResourceGroup"
 az storage account create --name $storageName \
-                          --location westus \
+                          --location eastus \
                           --resource-group myResourceGroup \
                           --sku Standard_LRS
 
@@ -92,7 +92,7 @@ echo "Creating a function app $functionName within myResourceGroup"
 az functionapp create --name $functionName \
                       --storage-account $storageName \
                       --resource-group myResourceGroup \
-                      --consumption-plan-location westus
+                      --consumption-plan-location eastus
 
 # Deploy functiona app code from a private GitHub repository. 
 # GitHub Personal Access Token is only required for private repos and can be removed for public repos
