@@ -63,7 +63,7 @@ echo "Finding storage connection string for Storage Account $storageName"
 storageConnectionString=$(az storage account show-connection-string --resource-group myResourceGroup --name $storageName --query connectionString --output tsv)
 echo $storageConnectionString
                           
-# Create blog storage containers for images
+# Create blob storage containers for images
 echo
 echo "Creating blob storage containers: $imagesContainerName"
 az storage container create --name $imagesContainerName \
@@ -71,7 +71,7 @@ az storage container create --name $imagesContainerName \
                             --account-key $storageAccountKey \
                             --public-access container
 
-# Create blog storage containers for images
+# Create blob storage containers for thumbnails
 echo
 echo "Creating blob storage containers: $thumbnailsContainerName"
 az storage container create --name $thumbnailsContainerName \
