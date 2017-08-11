@@ -2,9 +2,175 @@
     ViewData["Title"] = "Home Page";
 }
 
-<app asp-prerender-module="ClientApp/dist/main-server">Loading...</app>
+<!-- Client side libs required  -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/css/blueimp-gallery.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous">
 
-<script src="~/dist/vendor.js" asp-append-version="true"></script>
-@section scripts {
-    <script src="~/dist/main-client.js" asp-append-version="true"></script>
-}
+
+<style>
+    html {
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
+    main {
+        margin: 20px;
+    }
+
+    #gallery-note {
+        font-size: smaller
+    }
+
+    .blueimp-gallery {
+        margin: 25px;
+        max-width: 150px;
+        padding-bottom: 150px;
+    }
+
+    .dropzone {
+        border: 3px dashed #00a1f1;
+        background: #F0F8FF;
+        margin: 25px;
+        border-radius: 5px;
+        max-width: 400px;
+    }
+
+    .dropzone .dz-message {
+        font-weight: 350;
+    }
+
+    .dropzone .dz-message .note {
+        font-family: sans-serif;
+        font-size: 18px;
+        font-weight: 200;
+        display: block;
+        margin-top 1.5rem;
+    }
+</style>
+
+
+<main>
+    <div class="box header">
+        <h1><span class="fa fa-user-circle-o"></span> <span id="page-title">ImageResizer</span></h1>
+    </div>
+    
+    <div class="box content">
+        <hr>
+        <h2>Upload photos</h2>
+        <div>
+            <form action="/api/images/upload"
+                 class="dropzone needsclick dz-clickable" 
+                 id="image-upload"
+                 method="post"
+                 enctype="multipart/form">
+
+                <div class="dz-message needsclick">
+                    <span class="note needsclick">
+                        Drop files here or click to upload.
+                    </span>
+                </div>
+            </form>
+        </div>
+        <h2>Generated Thumbnails</h2>
+            <!-- <p><span id="gallery-note">Gallery refreshes from storage container image links every 5 seconds.</span></p> -->
+            <div id="stored-images"></div>
+
+            <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
+            <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
+                <div class="slides"></div>
+                <h3 class="title"></h3>
+                <a class="prev">‹</a>
+                <a class="next">›</a>
+                <a class="play-pause"></a>
+                <ol class="indicator"></ol>
+            </div>
+        </div>
+    </div>
+    <div class="box footer">
+        <hr>
+        <div class="privacy">
+            <p>This app has no official privacy policy. Your data will be uploaded to a service in order produce a picture.
+                Your images will be public once you upload them and there is no automated way to remove them.</p>
+        </div>
+    </div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+<script>
+    // init gallery for later use
+    var gallery;
+
+    // Grab links for images from backend api
+    function fetchImageLinks() {
+        // Fetch images
+        $.get("api/Images/thumbnails", function(fetchedImageLinks) {
+            console.log(fetchedImageLinks)
+
+            // Check if anything is in there
+            if ( _.isEmpty(fetchedImageLinks) ){
+                console.log('empty fetched')
+                // do nothing  
+            } else {
+                // Check if we have a gallery initialized
+                if ( _.isEmpty(gallery) ) {
+                    // initialize gallery
+                    gallery = blueimp.Gallery(
+                                fetchedImageLinks, // gallery links array
+                                {
+                                    container: '#blueimp-gallery-carousel',
+                                    carousel: true
+                                } // gallery options
+                            );                    
+                } else {
+                    // check if images are equal to array
+                    console.log('currently in gallery:')
+                    console.log(gallery.list)
+                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
+                    if ( imageLinksEqual ) {
+                        console.log('images arr are equal')
+                        // do nothing
+                    } else {
+                        console.log('images arr are not equal')
+
+                        // update gallery
+                        var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
+
+                        console.log('differene is: ')
+                        console.log(newImageLinks)
+                        // Only add new images
+                        gallery.add(newImageLinks);
+
+                        // Force image load
+                        gallery.next();
+                    }
+                }       
+            }     
+        });
+    }
+
+    // Start first interval
+    fetchImageLinks()
+    
+    setInterval(function() {
+        fetchImageLinks()
+    }, 5000) 
+
+    /* Dropzone */
+    // "imageUpload" is the camelized version of the HTML element's ID
+    Dropzone.options.imageUpload = {
+        paramName: "files", // The name that will be used to transfer the file
+        dictDefaultMessage: "Drop files here or Click to Upload",
+        addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
+        init: function() {
+            myDropzone = this;
+            myDropzone.on("success", function(file, response) {
+                console.log("Success");
+                myDropzone.removeFile(file);
+            });                    
+        }
+    };
+</script>
