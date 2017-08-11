@@ -22,31 +22,39 @@ namespace ImageResizeWebApp.Controllers
     public class ImagesController : Controller
     {
         // make sure that appsettings.json is filled with the necessary details of the azure storage
-        private readonly AzureStorageConfig _storageConfig;
+        private readonly AzureStorageConfig storageConfig = null;
 
         public ImagesController(IOptions<AzureStorageConfig> config)
         {
-            _storageConfig = config.Value;
+            storageConfig = config.Value;
         }
 
         // POST /api/images/upload
         [HttpPost("[action]")]
         public async Task<IActionResult> Upload(ICollection<IFormFile> files)
         {
-            string uploadedfileName = string.Empty;
+            bool isUploaded = false;
+
             bool isQueued = false;
+
             try
-            {          
-               
+            {
+
                 if (files.Count == 0)
+
                     return BadRequest("No files received from the upload");
 
-                if(_storageConfig.AccountKey == string.Empty || _storageConfig.AccountName == string.Empty)
+                if (storageConfig.AccountKey == string.Empty || storageConfig.AccountName == string.Empty)
+
                     return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
 
-                if (_storageConfig.ImageContainer == string.Empty)
+                if (storageConfig.ImageContainer == string.Empty)
+
                     return BadRequest("Please provide a name for your image container in the azure blob storage");
 
+                if (storageConfig.QueueName == string.Empty)
+
+                    return BadRequest("Please provide a name for storage queue");
 
                 foreach (var formFile in files)
                 {
@@ -56,29 +64,37 @@ namespace ImageResizeWebApp.Controllers
                         {
                             using (Stream stream = formFile.OpenReadStream())
                             {
-                                uploadedfileName = await StorageHelper.UploadFileToStorage(stream, formFile.FileName,_storageConfig);
+                                isUploaded = await StorageHelper.UploadFileToStorage(stream, formFile.FileName, storageConfig);
                             }
 
-                            if (uploadedfileName != string.Empty)
+                            if (isUploaded)
                             {
-                                isQueued = await StorageHelper.CreateQueueItem(uploadedfileName, _storageConfig);
+                                isQueued = await StorageHelper.CreateQueueItem(formFile.FileName, storageConfig);
+                            }
+                            else
+                            {
+                                return BadRequest("There is something went wrong while uploading the image");
                             }
                         }
                     }
                     else
                     {
-                        return new UnsupportedMediaTypeResult();                        
-                    }                   
+                        return new UnsupportedMediaTypeResult();
+                    }
                 }
 
-                if (uploadedfileName != string.Empty)
+                if (isUploaded)
                 {
-                    if(_storageConfig.ThumbnailContainer != string.Empty)
+                    if (storageConfig.ThumbnailContainer != string.Empty)
+
                         return new AcceptedAtActionResult("GetThumbNails", "Images", null, null);
+
                     else
+
                         return new AcceptedResult();
-                }                    
+                }
                 else
+
                     return BadRequest("Look like the image couldnt upload to the storage");
 
 
@@ -91,26 +107,29 @@ namespace ImageResizeWebApp.Controllers
 
         // GET /api/images/thumbnails
         [HttpGet("thumbnails")]
-        public async Task<IActionResult> GetThumbNails(string containerName)
+        public async Task<IActionResult> GetThumbNails()
         {
-            
+
             try
             {
-                if (_storageConfig != null)
-                {
-                    List<string> thumbnailUrls = await StorageHelper.GetThumbNailUrls(_storageConfig);
-                    return new ObjectResult(thumbnailUrls);
-                }
-                else
-                {
-                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js");
-                }
+                if (storageConfig.AccountKey == string.Empty || storageConfig.AccountName == string.Empty)
+
+                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
+
+                if (storageConfig.ImageContainer == string.Empty)
+
+                    return BadRequest("Please provide a name for your image container in the azure blob storage");
+
+                List<string> thumbnailUrls = await StorageHelper.GetThumbNailUrls(storageConfig);
+
+                return new ObjectResult(thumbnailUrls);
+            
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-           
+
         }
 
     }

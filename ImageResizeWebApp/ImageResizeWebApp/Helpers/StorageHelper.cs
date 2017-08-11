@@ -22,120 +22,109 @@ namespace ImageResizeWebApp.Helpers
                 return true;
             }
 
-            string[] formats = new string[] { ".jpg", ".png", ".gif", ".jpeg" }; // add more if u like...
+            string[] formats = new string[] { ".jpg", ".png", ".gif", ".jpeg" };
 
-            // linq from Henrik Stenbæk
             return formats.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
         }
-        public static async Task<string> UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
+
+        public static async Task<bool> UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
         {
-            string containerName = Guid.NewGuid().ToString().ToLower();
+            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
 
-            if (_storageConfig != null)
-            {
-                StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+            // Create cloudstorage account by passing the storagecredentials
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
-                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            // Create the blob client.
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
-                if (storageAccount != null)
-                {
-                    // Create the blob client.
-                    CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            // Get reference to the blob container by passing the name by reading the value from the configuration (appsettings.json)
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ImageContainer);
 
-                    CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ImageContainer);
+            // Create the container if not already exist
+            await container.CreateIfNotExistsAsync();
 
-                    await container.CreateIfNotExistsAsync();
+            // Get the reference to the block blob from the container
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
-                    // Retrieve reference to a blob named "myblob".
-                    CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            // Upload the file
+            await blockBlob.UploadFromStreamAsync(fileStream);
 
-                    await blockBlob.UploadFromStreamAsync(fileStream);
-
-                    return await Task.FromResult(fileName);
-                }
-
-            }
-
-            return await Task.FromResult(string.Empty);
+            return await Task.FromResult(true);
         }
+
         public static async Task<bool> CreateQueueItem(string imageInfo, AzureStorageConfig _storageConfig)
         {
-            if (_storageConfig != null)
-            {
-                StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
 
-                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            // Create cloudstorage account by passing the storagecredentials
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
-                if (storageAccount != null && imageInfo != string.Empty)
-                {
-                    // Create the queue client.
-                    CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+            // Create the queue client.
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
 
-                    // Retrieve a reference to a queue.
-                    CloudQueue queue = queueClient.GetQueueReference(_storageConfig.QueueName);
+            // Retrieve a reference to a queue.
+            CloudQueue queue = queueClient.GetQueueReference(_storageConfig.QueueName);
 
-                    // Create the queue if it doesn't already exist.
-                    await queue.CreateIfNotExistsAsync();
+            // Create the queue if it doesn't already exist.
+            await queue.CreateIfNotExistsAsync();
 
-                    // Create a message and add it to the queue.
-                    CloudQueueMessage message = new CloudQueueMessage(imageInfo);
+            // Create a message and add it to the queue.
+            CloudQueueMessage message = new CloudQueueMessage(imageInfo);
 
-                    await queue.AddMessageAsync(message);
+            // Add a message to the queue
+            await queue.AddMessageAsync(message);
 
-                    return await Task.FromResult(true);
-                }
-
-            }
-            return await Task.FromResult(false);
+            return await Task.FromResult(true);
         }
+
         public static async Task<List<string>> GetThumbNailUrls(AzureStorageConfig _storageConfig)
         {
             List<string> thumbnailUrls = new List<string>();
-            try
+
+            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+
+            // Create cloudstorage account by passing the storagecredentials
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            // Create blob client
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            // Get reference to the container
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ThumbnailContainer);
+
+            // Create the container if it is not exists
+            await container.CreateIfNotExistsAsync();
+
+            // Set the permission of the container to public
+            await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
+
+            BlobContinuationToken continuationToken = null;
+
+            BlobResultSegment resultSegment = null;
+
+            //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
+            //When the continuation token is null, the last page has been returned and execution can exit the loop.
+            do
             {
-                StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+                //This overload allows control of the page size. You can return all remaining results by passing null for the maxResults parameter,
+                //or by calling a different overload.
+                resultSegment = await container.ListBlobsSegmentedAsync("", true, BlobListingDetails.All, 10, continuationToken, null, null);
 
-                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-                CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ThumbnailContainer);   
-                
-                await container.CreateIfNotExistsAsync();
-
-                await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-                // Loop over items within the container and output the length and URI.
-                int i = 0;
-
-                BlobContinuationToken continuationToken = null;
-
-                BlobResultSegment resultSegment = null;
-
-                //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
-                //When the continuation token is null, the last page has been returned and execution can exit the loop.
-                do
+                foreach (var blobItem in resultSegment.Results)
                 {
-                    //This overload allows control of the page size. You can return all remaining results by passing null for the maxResults parameter,
-                    //or by calling a different overload.
-                    resultSegment = await container.ListBlobsSegmentedAsync("", true, BlobListingDetails.All, 10, continuationToken, null, null);
-
-                    foreach (var blobItem in resultSegment.Results)
-                    {
-                        thumbnailUrls.Add(blobItem.StorageUri.PrimaryUri.ToString());
-                    }
-
-                    //Get the continuation token.
-                    continuationToken = resultSegment.ContinuationToken;
+                    thumbnailUrls.Add(blobItem.StorageUri.PrimaryUri.ToString());
                 }
-                while (continuationToken != null);
 
-                return await Task.FromResult(thumbnailUrls);
+                //Get the continuation token.
+                continuationToken = resultSegment.ContinuationToken;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+
+            while (continuationToken != null);
+
+            return await Task.FromResult(thumbnailUrls);
         }
     }
 }
