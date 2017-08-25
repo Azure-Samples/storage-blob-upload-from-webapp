@@ -10,7 +10,6 @@ using System.IO;
 using Microsoft.Azure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Auth;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
@@ -52,10 +51,6 @@ namespace ImageResizeWebApp.Controllers
 
                     return BadRequest("Please provide a name for your image container in the azure blob storage");
 
-                if (storageConfig.QueueName == string.Empty)
-
-                    return BadRequest("Please provide a name for storage queue");
-
                 foreach (var formFile in files)
                 {
                     if (StorageHelper.IsImage(formFile))
@@ -69,7 +64,7 @@ namespace ImageResizeWebApp.Controllers
 
                             if (isUploaded)
                             {
-                                isQueued = await StorageHelper.CreateQueueItem(formFile.FileName, storageConfig);
+                                // TODO
                             }
                             else
                             {
