@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Queue;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,32 +49,6 @@ namespace ImageResizeWebApp.Helpers
 
             // Upload the file
             await blockBlob.UploadFromStreamAsync(fileStream);
-
-            return await Task.FromResult(true);
-        }
-
-        public static async Task<bool> CreateQueueItem(string imageInfo, AzureStorageConfig _storageConfig)
-        {
-            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-
-            // Create cloudstorage account by passing the storagecredentials
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            // Create the queue client.
-            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-
-            // Retrieve a reference to a queue.
-            CloudQueue queue = queueClient.GetQueueReference(_storageConfig.QueueName);
-
-            // Create the queue if it doesn't already exist.
-            await queue.CreateIfNotExistsAsync();
-
-            // Create a message and add it to the queue.
-            CloudQueueMessage message = new CloudQueueMessage(imageInfo);
-
-            // Add a message to the queue
-            await queue.AddMessageAsync(message);
 
             return await Task.FromResult(true);
         }
