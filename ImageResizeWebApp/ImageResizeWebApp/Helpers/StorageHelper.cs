@@ -115,36 +115,5 @@ namespace ImageResizeWebApp.Helpers
 
             return await Task.FromResult(thumbnailUrls);
         }
-
-        public static async Task<Object> GetStorageURLWithSASToken(AzureStorageConfig _storageConfig)
-        {
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            // Create the blob client.
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            CloudBlobContainer imageContainer = blobClient.GetContainerReference(_storageConfig.ImageContainer);
-
-            await imageContainer.CreateIfNotExistsAsync();
-
-            SharedAccessBlobPolicy sasContainerPolicy = new SharedAccessBlobPolicy();
-
-            sasContainerPolicy.SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(24);
-
-            sasContainerPolicy.Permissions = SharedAccessBlobPermissions.List | SharedAccessBlobPermissions.Write;
-
-            string sasContainerToken = imageContainer.GetSharedAccessSignature(sasContainerPolicy);
-
-            var storageInfo = new
-            {
-                imageUploadUrl = imageContainer.Uri,
-
-                imageUploadSASToken = sasContainerToken,
-            };
-
-            return await Task.FromResult(storageInfo);
-        }
     }
 }
