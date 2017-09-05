@@ -34,8 +34,6 @@ namespace ImageResizeWebApp.Controllers
         {
             bool isUploaded = false;
 
-            bool isQueued = false;
-
             try
             {
 
@@ -60,15 +58,6 @@ namespace ImageResizeWebApp.Controllers
                             using (Stream stream = formFile.OpenReadStream())
                             {
                                 isUploaded = await StorageHelper.UploadFileToStorage(stream, formFile.FileName, storageConfig);
-                            }
-
-                            if (isUploaded)
-                            {
-                                // TODO
-                            }
-                            else
-                            {
-                                return BadRequest("There is something went wrong while uploading the image");
                             }
                         }
                     }
@@ -118,7 +107,7 @@ namespace ImageResizeWebApp.Controllers
                 List<string> thumbnailUrls = await StorageHelper.GetThumbNailUrls(storageConfig);
 
                 return new ObjectResult(thumbnailUrls);
-            
+
             }
             catch (Exception ex)
             {
