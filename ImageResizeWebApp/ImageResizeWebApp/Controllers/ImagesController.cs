@@ -34,8 +34,6 @@ namespace ImageResizeWebApp.Controllers
         {
             bool isUploaded = false;
 
-            bool isQueued = false;
-
             try
             {
 
