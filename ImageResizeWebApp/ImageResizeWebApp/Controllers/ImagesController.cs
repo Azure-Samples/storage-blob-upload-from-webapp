@@ -61,15 +61,6 @@ namespace ImageResizeWebApp.Controllers
                             {
                                 isUploaded = await StorageHelper.UploadFileToStorage(stream, formFile.FileName, storageConfig);
                             }
-
-                            if (isUploaded)
-                            {
-                                // TODO
-                            }
-                            else
-                            {
-                                return BadRequest("There is something went wrong while uploading the image");
-                            }
                         }
                     }
                     else
