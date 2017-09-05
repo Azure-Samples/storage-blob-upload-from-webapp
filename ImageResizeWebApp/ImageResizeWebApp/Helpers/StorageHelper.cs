@@ -67,9 +67,6 @@ namespace ImageResizeWebApp.Helpers
             // Get reference to the container
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ThumbnailContainer);
 
-            // Create the container if it is not exists
-            await container.CreateIfNotExistsAsync();
-
             // Set the permission of the container to public
             await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
