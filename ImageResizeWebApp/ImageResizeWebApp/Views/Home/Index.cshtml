@@ -127,15 +127,15 @@
                     // check if images are equal to array
                     console.log('currently in gallery:')
                     console.log(gallery.list)
-                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list), _.sortBy(fetchedImageLinks))
+                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list.map(s => s.split("?")[0])), _.sortBy(fetchedImageLinks.map(s => s.split("?")[0])))
                     if ( imageLinksEqual ) {
                         console.log('images arr are equal')
                         // do nothing
                     } else {
                         console.log('images arr are not equal')
 
-                        // update gallery
-                        var newImageLinks = _.difference(fetchedImageLinks, gallery.list)
+                        // update gallery with new image urls. Only compare actual url without SAS token query string
+                        var newImageLinks = _.difference(fetchedImageLinks.map(s => s.split("?")[0]), gallery.list.map(s => s.split("?")[0]))
 
                         console.log('differene is: ')
                         console.log(newImageLinks)
