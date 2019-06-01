@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/ImageResizeWebApp/ImageResizeWebApp/bin/Debug/netcoreapp2.0/ImageResizeWebApp.dll",
+            "program": "${workspaceFolder}/ImageResizeWebApp/ImageResizeWebApp/bin/Debug/netcoreapp2.2/ImageResizeWebApp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/ImageResizeWebApp/ImageResizeWebApp",
             "stopAtEntry": false,
