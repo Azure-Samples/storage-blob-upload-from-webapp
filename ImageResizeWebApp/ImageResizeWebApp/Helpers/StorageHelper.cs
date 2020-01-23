@@ -27,7 +27,8 @@ namespace ImageResizeWebApp.Helpers
             return formats.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static async Task<bool> UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
+        public static async Task<bool> UploadFileToStorage(Stream fileStream, string fileName,
+                                                            AzureStorageConfig _storageConfig)
         {
             // Create a URI to the blob
             Uri blobUri = new Uri("https://" + 
