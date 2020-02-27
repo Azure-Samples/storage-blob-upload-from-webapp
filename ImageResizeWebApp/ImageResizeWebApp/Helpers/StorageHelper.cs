@@ -1,9 +1,9 @@
-﻿using ImageResizeWebApp.Models;
+﻿using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
+using ImageResizeWebApp.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,89 +27,78 @@ namespace ImageResizeWebApp.Helpers
             return formats.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static async Task<bool> UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
+        public static async Task<bool> UploadFileToStorage(Stream fileStream, string fileName,
+                                                            AzureStorageConfig _storageConfig)
         {
-            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+            // Create a URI to the blob
+            Uri blobUri = new Uri("https://" +
+                                  _storageConfig.AccountName +
+                                  ".blob.core.windows.net/" +
+                                  _storageConfig.ImageContainer +
+                                  "/" + fileName);
 
-            // Create cloudstorage account by passing the storagecredentials
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            // Create StorageSharedKeyCredentials object by reading
+            // the values from the configuration (appsettings.json)
+            StorageSharedKeyCredential storageCredentials =
+                new StorageSharedKeyCredential(_storageConfig.AccountName, _storageConfig.AccountKey);
 
             // Create the blob client.
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            // Get reference to the blob container by passing the name by reading the value from the configuration (appsettings.json)
-            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ImageContainer);
-
-            // Get the reference to the block blob from the container
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            BlobClient blobClient = new BlobClient(blobUri, storageCredentials);
 
             // Upload the file
-            await blockBlob.UploadFromStreamAsync(fileStream);
+            await blobClient.UploadAsync(fileStream);
 
             return await Task.FromResult(true);
         }
-
 
         public static async Task<List<string>> GetThumbNailUrls(AzureStorageConfig _storageConfig)
         {
             List<string> thumbnailUrls = new List<string>();
 
-            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+            // Create a URI to the storage account
+            Uri accountUri = new Uri("https://" + _storageConfig.AccountName + ".blob.core.windows.net/");
 
-            // Create cloudstorage account by passing the storagecredentials
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            // Create blob client
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            // Create BlobServiceClient from the account URI
+            BlobServiceClient blobServiceClient = new BlobServiceClient(accountUri);
 
             // Get reference to the container
-            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ThumbnailContainer);
+            BlobContainerClient container = blobServiceClient.GetBlobContainerClient(_storageConfig.ThumbnailContainer);
 
-            // Set the permission of the container to public
-            await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
-            BlobContinuationToken continuationToken = null;
-
-            BlobResultSegment resultSegment = null;
-
-            //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
-            //When the continuation token is null, the last page has been returned and execution can exit the loop.
-            do
+            if (container.Exists())
             {
-                //This overload allows control of the page size. You can return all remaining results by passing null for the maxResults parameter,
-                //or by calling a different overload.
-                resultSegment = await container.ListBlobsSegmentedAsync("", true, BlobListingDetails.All, 10, continuationToken, null, null);
-
-                foreach (var blobItem in resultSegment.Results)
+                // Set the expiration time and permissions for the container.
+                // In this case, the start time is specified as a few 
+                // minutes in the past, to mitigate clock skew.
+                // The shared access signature will be valid immediately.
+                BlobSasBuilder sas = new BlobSasBuilder
                 {
-                    CloudBlockBlob blob = blobItem as CloudBlockBlob;
-                    //Set the expiry time and permissions for the blob.
-                    //In this case, the start time is specified as a few minutes in the past, to mitigate clock skew.
-                    //The shared access signature will be valid immediately.
-                    SharedAccessBlobPolicy sasConstraints = new SharedAccessBlobPolicy();
+                    Resource = "c",
+                    BlobContainerName = _storageConfig.ThumbnailContainer,
+                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+                    ExpiresOn = DateTimeOffset.UtcNow.AddHours(1)
+                };
 
-                    sasConstraints.SharedAccessStartTime = DateTimeOffset.UtcNow.AddMinutes(-5);
+                sas.SetPermissions(BlobContainerSasPermissions.All);
 
-                    sasConstraints.SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(24);
+                // Create StorageSharedKeyCredentials object by reading
+                // the values from the configuration (appsettings.json)
+                StorageSharedKeyCredential storageCredential =
+                    new StorageSharedKeyCredential(_storageConfig.AccountName, _storageConfig.AccountKey);
 
-                    sasConstraints.Permissions = SharedAccessBlobPermissions.Read;
+                // Create a SAS URI to the storage account
+                UriBuilder sasUri = new UriBuilder(accountUri);
+                sasUri.Query = sas.ToSasQueryParameters(storageCredential).ToString();
 
-                    //Generate the shared access signature on the blob, setting the constraints directly on the signature.
-                    string sasBlobToken = blob.GetSharedAccessSignature(sasConstraints);
+                foreach (BlobItem blob in container.GetBlobs())
+                {
+                    // Create the URI using the SAS query token.
+                    string sasBlobUri = container.Uri + "/" +
+                                        blob.Name + sasUri.Query;
 
                     //Return the URI string for the container, including the SAS token.
-                    thumbnailUrls.Add(blob.Uri + sasBlobToken);
-
+                    thumbnailUrls.Add(sasBlobUri);
                 }
-
-                //Get the continuation token.
-                continuationToken = resultSegment.ContinuationToken;
             }
-
-            while (continuationToken != null);
-
             return await Task.FromResult(thumbnailUrls);
         }
     }
