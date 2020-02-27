@@ -1,7 +1,9 @@
 ﻿using ImageResizeWebApp.Models;
 using Microsoft.AspNetCore.Http;
+using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs.Models;
+using System.Diagnostics;
 
 namespace ImageResizeWebApp.Helpers
 {
@@ -31,15 +34,15 @@ namespace ImageResizeWebApp.Helpers
                                                             AzureStorageConfig _storageConfig)
         {
             // Create a URI to the blob
-            Uri blobUri = new Uri("https://" + 
-                                  _storageConfig.AccountName + 
-                                  ".blob.core.windows.net/" + 
-                                  _storageConfig.ImageContainer + 
+            Uri blobUri = new Uri("https://" +
+                                  _storageConfig.AccountName +
+                                  ".blob.core.windows.net/" +
+                                  _storageConfig.ImageContainer +
                                   "/" + fileName);
 
             // Create StorageSharedKeyCredentials object by reading
             // the values from the configuration (appsettings.json)
-            StorageSharedKeyCredential storageCredentials = 
+            StorageSharedKeyCredential storageCredentials =
                 new StorageSharedKeyCredential(_storageConfig.AccountName, _storageConfig.AccountKey);
 
             // Create the blob client.
@@ -64,9 +67,12 @@ namespace ImageResizeWebApp.Helpers
             // Get reference to the container
             BlobContainerClient container = blobServiceClient.GetBlobContainerClient(_storageConfig.ThumbnailContainer);
 
-            foreach (BlobItem blobItem in container.GetBlobs())
+            if (container.Exists())
             {
-                thumbnailUrls.Add(container.Uri + "/" + blobItem.Name);
+                foreach (BlobItem blobItem in container.GetBlobs())
+                {
+                    thumbnailUrls.Add(container.Uri + "/" + blobItem.Name);
+                }
             }
 
             return await Task.FromResult(thumbnailUrls);
