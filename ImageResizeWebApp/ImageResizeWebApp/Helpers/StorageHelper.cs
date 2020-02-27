@@ -1,17 +1,13 @@
-﻿using ImageResizeWebApp.Models;
-using Microsoft.AspNetCore.Http;
-using Azure;
-using Azure.Storage;
+﻿using Azure.Storage;
 using Azure.Storage.Blobs;
-using Azure.Storage.Sas;
-
+using Azure.Storage.Blobs.Models;
+using ImageResizeWebApp.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs.Models;
-using System.Diagnostics;
 
 namespace ImageResizeWebApp.Helpers
 {
