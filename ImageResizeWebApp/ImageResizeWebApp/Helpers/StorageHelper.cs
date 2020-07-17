@@ -57,15 +57,16 @@ namespace ImageResizeWebApp.Helpers
 
             // Create a URI to the storage account
             Uri accountUri = new Uri("https://" + _storageConfig.AccountName + ".blob.core.windows.net/");
-
+            Console.WriteLine(" Create BlobServiceClient from the account URI " + accountUri.ToString());
             // Create BlobServiceClient from the account URI
             BlobServiceClient blobServiceClient = new BlobServiceClient(accountUri);
-
+            Console.WriteLine("Get reference to the container" + _storageConfig.ThumbnailContainer);
             // Get reference to the container
             BlobContainerClient container = blobServiceClient.GetBlobContainerClient(_storageConfig.ThumbnailContainer);
-
+            
             if (container.Exists())
             {
+                Console.WriteLine("Container Exists");
                 // Set the expiration time and permissions for the container.
                 // In this case, the start time is specified as a few 
                 // minutes in the past, to mitigate clock skew.
@@ -99,6 +100,7 @@ namespace ImageResizeWebApp.Helpers
                     thumbnailUrls.Add(sasBlobUri);
                 }
             }
+            
             return await Task.FromResult(thumbnailUrls);
         }
     }
