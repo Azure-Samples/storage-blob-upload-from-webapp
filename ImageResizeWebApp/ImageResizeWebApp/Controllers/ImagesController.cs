@@ -33,7 +33,7 @@ namespace ImageResizeWebApp.Controllers
                     return BadRequest("No files received from the upload");
 
                 if (storageConfig.AccountKey == string.Empty || storageConfig.AccountName == string.Empty)
-                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
+                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.json, make sure that you add azure storage details there");
 
                 if (storageConfig.ImageContainer == string.Empty)
                     return BadRequest("Please provide a name for your image container in the azure blob storage");
