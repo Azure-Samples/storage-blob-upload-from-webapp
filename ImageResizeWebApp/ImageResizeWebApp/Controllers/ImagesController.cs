@@ -33,7 +33,7 @@ namespace ImageResizeWebApp.Controllers
                     return BadRequest("No files received from the upload");
 
                 if (storageConfig.AccountKey == string.Empty || storageConfig.AccountName == string.Empty)
-                    return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
+                    return BadRequest("Sorry, your Azure storage details couldn't be retrieved from appsettings.json, make sure that you add Azure storage details there");
 
                 if (storageConfig.ImageContainer == string.Empty)
                     return BadRequest("Please provide a name for your image container in the azure blob storage");
@@ -64,7 +64,7 @@ namespace ImageResizeWebApp.Controllers
                         return new AcceptedResult();
                 }
                 else
-                    return BadRequest("Look like the image couldnt upload to the storage");
+                    return BadRequest("Looks like the image couldn't be uploaded to the storage");
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace ImageResizeWebApp.Controllers
             try
             {
                 if (storageConfig.AccountKey == string.Empty || storageConfig.AccountName == string.Empty)
-                    return BadRequest("Sorry, can't retrieve your Azure storage details from appsettings.js, make sure that you add Azure storage details there.");
+                    return BadRequest("Sorry, your Azure storage details couldn't be retrieved from appsettings.json, make sure that you add Azure storage details there.");
 
                 if (storageConfig.ImageContainer == string.Empty)
                     return BadRequest("Please provide a name for your image container in Azure blob storage.");
